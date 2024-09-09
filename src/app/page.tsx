@@ -27,7 +27,7 @@ const Section: FC<{ title: string; children: React.ReactNode }> = ({ title, chil
   </section>
 );
 
-const CRMDashboard: FC = () => {
+const BFFDashboard: FC = () => {
   const { data, error } = useSWR<DashboardData>('/api/bff/dashboard', fetcher);
 
   if (error) return <ErrorMessage message="Failed to fetch dashboard data" />;
@@ -117,4 +117,4 @@ const CRMDashboard: FC = () => {
   );
 };
 
-export default CRMDashboard;
+export default BFFDashboard;
