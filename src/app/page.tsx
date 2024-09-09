@@ -1,101 +1,120 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { FC } from 'react';
+import useSWR from 'swr';
+import axios from 'axios';
+import { Album, Comment, DashboardData, Photo, Post, User } from '@/types/types';
+
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+const ErrorMessage: FC<{ message: string }> = ({ message }) => (
+  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <strong className="font-bold">Error:</strong>
+    <span className="block sm:inline"> {message}</span>
+  </div>
+);
+
+const LoadingMessage: FC = () => (
+  <div className="bg-gray-100 border border-gray-400 text-gray-700 px-4 py-3 rounded relative" role="alert">
+    Loading...
+  </div>
+);
+
+const Section: FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="bg-white p-4 rounded-md shadow-md">
+    <h2 className="text-lg font-bold mb-2">{title}</h2>
+    {children}
+  </section>
+);
+
+const CRMDashboard: FC = () => {
+  const { data, error } = useSWR<DashboardData>('/api/bff/dashboard', fetcher);
+
+  if (error) return <ErrorMessage message="Failed to fetch dashboard data" />;
+  if (!data) return <LoadingMessage />;
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="crm-dashboard bg-gray-100 p-8">
+      <h1 className="text-2xl font-bold mb-4">BFF Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {/* Posts Section */}
+        <Section title="Posts">
+          {!data.posts ? (
+            <ErrorMessage message="Failed to load posts." />
+          ) : (
+            <ul>
+              {data.posts.map((post: Post) => (
+                <li key={post.id} className="text-gray-600 hover:text-gray-800">
+                  {post.title}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        {/* Comments Section */}
+        <Section title="Comments">
+          {!data.comments ? (
+            <ErrorMessage message="Failed to load comments." />
+          ) : (
+            <ul>
+              {data.comments.map((comment: Comment) => (
+                <li key={comment.id} className="text-gray-600 hover:text-gray-800">
+                  {comment.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        {/* Albums Section */}
+        <Section title="Albums">
+          {!data.albums ? (
+            <ErrorMessage message="Failed to load albums." />
+          ) : (
+            <ul>
+              {data.albums.map((album: Album) => (
+                <li key={album.id} className="text-gray-600 hover:text-gray-800">
+                  {album.title}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        {/* Photos Section */}
+        <Section title="Photos">
+          {!data.photos ? (
+            <ErrorMessage message="Failed to load photos." />
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {data.photos.map((photo: Photo) => (
+                <div key={photo.id} className="photo-item">
+                  <img src={photo.thumbnailUrl} alt={photo.title} className="rounded-md" />
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* Users Section */}
+        <Section title="Users">
+          {!data.users ? (
+            <ErrorMessage message="Failed to load users." />
+          ) : (
+            <ul>
+              {data.users.map((user: User) => (
+                <li key={user.id} className="text-gray-600 hover:text-gray-800">
+                  {user.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+      </div>
     </div>
   );
-}
+};
+
+export default CRMDashboard;
